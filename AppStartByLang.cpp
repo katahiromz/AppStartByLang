@@ -12,7 +12,7 @@ void version(void)
     puts(
         "SetLangAppStart Version 0.4\n"
         "Copyright (C) 2022 Katayama Hirofumi MZ\n"
-        "License: MIT\n"
+        "License: MIT"
     );
 }
 
