@@ -143,6 +143,6 @@ _tWinMain(HINSTANCE   hInstance,
     INT argc;
     LPWSTR *wargv = CommandLineToArgvW(GetCommandLineW(), &argc);
     INT ret = wmain(argc, wargv);
-    free(wargv);
+    LocalFree(wargv);
     return ret;
 }
