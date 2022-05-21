@@ -69,16 +69,21 @@ INT doRunByLang(LPCTSTR cmdline, LANGID wLangID, INT nCmdShow)
     LPTSTR pszCmdLine = _tcsdup(cmdline);
     INT ret = CreateProcess(NULL, pszCmdLine, NULL, NULL, FALSE, CREATE_SUSPENDED,
                             NULL, NULL, &si, &pi);
-    _putts(pszCmdLine);
+    if (!ret)
+    {
+        _tprintf(TEXT("FAILED: %s (GetLastError: %ld)\n"), cmdline, GetLastError());
+    }
     free(pszCmdLine);
+
+    if (!ret)
+        return -1;
 
     g_hThread = pi.hThread;
     g_hProcess = pi.hProcess;
+    atexit(atexit_proc);
 
     if (!SetLangToThread(pi.hThread, wLangID))
-        MessageBox(NULL, TEXT("FAILED"), NULL, MB_ICONERROR);
-
-    atexit(atexit_proc);
+        puts("FAILED: SetLangToThread");
 
     ResumeThread(pi.hThread);
 
