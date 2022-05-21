@@ -10,7 +10,7 @@ HANDLE g_hThread = NULL;
 void version(void)
 {
     puts(
-        "SetLangAppStart Version 0.5\n"
+        "SetLangAppStart Version 0.6\n"
         "Copyright (C) 2022 Katayama Hirofumi MZ\n"
         "License: MIT"
     );
@@ -34,11 +34,12 @@ void langs(void)
     UINT iKL, chKLs = GetKeyboardLayoutList(_countof(ahKLs), ahKLs);
     CHAR szLang[MAX_PATH];
 
+    puts("Language IDs:");
     for (iKL = 0; iKL < chKLs; ++iKL)
     {
         LANGID LangID = LOWORD(ahKLs[iKL]);
         GetLocaleInfoA(LangID, LOCALE_SENGLANGUAGE, szLang, _countof(szLang));
-        printf("0x%04X: %s\n", LangID, szLang);
+        printf("  0x%04X: %s\n", LangID, szLang);
     }
 }
 
@@ -80,9 +81,8 @@ BOOL SetLangToThread(HANDLE hThread, LANGID wLangID)
     BOOL ret = FALSE;
     FN_SetLang fn = GetLangProc();
     if (fn)
-    {
         ret = (BOOL)QueueUserAPC((PAPCFUNC)fn, hThread, wLangID);
-    }
+
     return ret;
 }
 
@@ -94,12 +94,12 @@ INT doRunByLang(LPCWSTR cmdline, LANGID wLangID, INT nCmdShow)
     si.dwFlags = STARTF_USESHOWWINDOW;
     si.wShowWindow = nCmdShow;
 
-    LPTSTR pszCmdLine = wcsdup(cmdline);
+    LPWSTR pszCmdLine = wcsdup(cmdline);
     INT ret = CreateProcessW(NULL, pszCmdLine, NULL, NULL, FALSE, CREATE_SUSPENDED,
                              NULL, NULL, &si, &pi);
     if (!ret)
     {
-        wprintf(L"FAILED: %s (GetLastError: %ld)\n", cmdline, GetLastError());
+        fprintf(stderr, "CreateProcess: FAILED (GetLastError: %ld)\n", cmdline, GetLastError());
     }
     free(pszCmdLine);
 
@@ -111,7 +111,7 @@ INT doRunByLang(LPCWSTR cmdline, LANGID wLangID, INT nCmdShow)
     atexit(atexit_proc);
 
     if (!SetLangToThread(pi.hThread, wLangID))
-        OutputDebugStringA("FAILED: SetLangToThread\n");
+        fprintf(stderr, "FAILED: SetLangToThread\n");
 
     ResumeThread(pi.hThread);
 
