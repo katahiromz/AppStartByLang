@@ -4,18 +4,16 @@
 #include <strsafe.h>
 #include <stdio.h>
 
-#ifdef UNICODE
-    typedef std::wstring tstr_t;
-#else
-    typedef std::string tstr_t;
-#endif
-
 HANDLE g_hProcess = NULL;
 HANDLE g_hThread = NULL;
 
 void version(void)
 {
-    puts("SetLangAppStart Version 0.1 by katahiromz");
+    puts(
+        "SetLangAppStart Version 0.3\n"
+        "Copyright (C) 2022 Katayama Hirofumi MZ\n"
+        "License: MIT\n"
+    );
 }
 
 void usage(void)
@@ -30,7 +28,7 @@ void usage(void)
 
 void langs(void)
 {
-    HKL ahKLs[32];
+    HKL ahKLs[64];
     ZeroMemory(ahKLs, sizeof(ahKLs));
 
     UINT iKL, chKLs = GetKeyboardLayoutList(_countof(ahKLs), ahKLs);
@@ -48,7 +46,6 @@ void atexit_proc(void)
 {
     CloseHandle(g_hThread);
     TerminateProcess(g_hProcess, -1024);
-    puts("atexit");
 }
 
 inline BOOL IsWindowsVistaOrLater(VOID)
@@ -89,20 +86,20 @@ BOOL SetLangToThread(HANDLE hThread, LANGID wLangID)
     return ret;
 }
 
-INT doRunByLang(LPCTSTR cmdline, LANGID wLangID, INT nCmdShow)
+INT doRunByLang(LPCWSTR cmdline, LANGID wLangID, INT nCmdShow)
 {
-    STARTUPINFO si = { sizeof(si) };
+    STARTUPINFOW si = { sizeof(si) };
     PROCESS_INFORMATION pi = { NULL };
 
     si.dwFlags = STARTF_USESHOWWINDOW;
     si.wShowWindow = nCmdShow;
 
-    LPTSTR pszCmdLine = _tcsdup(cmdline);
-    INT ret = CreateProcess(NULL, pszCmdLine, NULL, NULL, FALSE, CREATE_SUSPENDED,
-                            NULL, NULL, &si, &pi);
+    LPTSTR pszCmdLine = wcsdup(cmdline);
+    INT ret = CreateProcessW(NULL, pszCmdLine, NULL, NULL, FALSE, CREATE_SUSPENDED,
+                             NULL, NULL, &si, &pi);
     if (!ret)
     {
-        _tprintf(TEXT("FAILED: %s (GetLastError: %ld)\n"), cmdline, GetLastError());
+        wprintf(L"FAILED: %s (GetLastError: %ld)\n", cmdline, GetLastError());
     }
     free(pszCmdLine);
 
@@ -146,29 +143,35 @@ int wmain(int argc, wchar_t *wargv[])
         return 0;
     }
 
-    LANGID wLangID = _tcstoul(wargv[1], NULL, 0);
+    if (!(L'0' <= wargv[1][0] && wargv[1][0] <= L'9'))
+    {
+        usage();
+        return -1;
+    }
 
-    tstr_t cmdline;
+    LANGID wLangID = wcstoul(wargv[1], NULL, 0);
+
+    std::wstring cmdline;
     for (INT iarg = 2; iarg < argc; ++iarg)
     {
-        LPTSTR arg = wargv[iarg];
+        LPWSTR arg = wargv[iarg];
         if (iarg > 2)
-            cmdline += TEXT(" ");
+            cmdline += L" ";
 
-        if (_tcscspn(arg, TEXT(" \t\r\n")) == _tcslen(arg))
+        if (wcscspn(arg, L" \t\r\n") == wcslen(arg))
         {
             cmdline += arg;
         }
         else
         {
-            cmdline += TEXT("\"");
+            cmdline += L"\"";
             cmdline += arg;
-            cmdline += TEXT("\"");
+            cmdline += L"\"";
         }
     }
 
-    STARTUPINFO si = { sizeof(si) };
-    GetStartupInfo(&si);
+    STARTUPINFOW si = { sizeof(si) };
+    GetStartupInfoW(&si);
 
     if (!(si.dwFlags & STARTF_USESHOWWINDOW))
         si.wShowWindow = SW_SHOWNORMAL;
