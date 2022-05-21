@@ -37,12 +37,7 @@ endif()
 ##############################################################################
 
 # AppStartByLang.exe
-add_executable(AppStartByLang WIN32 AppStartByLang.cpp)
+add_executable(AppStartByLang AppStartByLang.cpp)
 target_compile_definitions(AppStartByLang PRIVATE -DUNICODE -D_UNICODE)
-if(MSVC)
-    target_link_options(AppStartByLang PRIVATE "/entry:wmainCRTStartup")
-else()
-    target_link_options(AppStartByLang PRIVATE "-municode")
-endif()
 
 ##############################################################################

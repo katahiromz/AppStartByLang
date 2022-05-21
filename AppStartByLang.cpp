@@ -10,7 +10,7 @@ HANDLE g_hThread = NULL;
 void version(void)
 {
     puts(
-        "SetLangAppStart Version 0.4\n"
+        "SetLangAppStart Version 0.5\n"
         "Copyright (C) 2022 Katayama Hirofumi MZ\n"
         "License: MIT"
     );
@@ -32,13 +32,13 @@ void langs(void)
     ZeroMemory(ahKLs, sizeof(ahKLs));
 
     UINT iKL, chKLs = GetKeyboardLayoutList(_countof(ahKLs), ahKLs);
-    CHAR szBuff[MAX_PATH];
+    CHAR szLang[MAX_PATH];
 
     for (iKL = 0; iKL < chKLs; ++iKL)
     {
         LANGID LangID = LOWORD(ahKLs[iKL]);
-        if (GetLocaleInfoA(LangID, LOCALE_SABBREVLANGNAME, szBuff, _countof(szBuff)))
-            printf("0x%04X: %s\n", LangID, szBuff);
+        GetLocaleInfoA(LangID, LOCALE_SENGLANGUAGE, szLang, _countof(szLang));
+        printf("0x%04X: %s\n", LangID, szLang);
     }
 }
 
@@ -179,4 +179,13 @@ int wmain(int argc, wchar_t *wargv[])
         si.wShowWindow = SW_SHOWNORMAL;
 
     return doRunByLang(cmdline.c_str(), wLangID, si.wShowWindow);
+}
+
+int main(int argc, char *argv[])
+{
+    INT myargc;
+    LPWSTR *myargv = CommandLineToArgvW(GetCommandLineW(), &myargc);
+    INT ret = wmain(myargc, myargv);
+    LocalFree(myargv);
+    return ret;
 }
