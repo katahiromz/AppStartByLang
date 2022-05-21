@@ -10,7 +10,7 @@ HANDLE g_hThread = NULL;
 void version(void)
 {
     puts(
-        "SetLangAppStart Version 0.3\n"
+        "SetLangAppStart Version 0.4\n"
         "Copyright (C) 2022 Katayama Hirofumi MZ\n"
         "License: MIT\n"
     );
@@ -64,14 +64,14 @@ FN_SetLang GetLangProc(void)
         fn = (FN_SetLang)GetProcAddress(GetModuleHandleA("kernel32"), "SetThreadUILanguage");
         if (fn)
         {
-            puts("SetThreadUILanguage");
+            OutputDebugStringA("SetThreadUILanguage\n");
             return fn;
         }
     }
 
     fn = (FN_SetLang)GetProcAddress(GetModuleHandleA("kernel32"), "SetThreadLocale");
     if (fn)
-        puts("SetThreadLocale");
+        OutputDebugStringA("SetThreadLocale\n");
     return fn;
 }
 
@@ -111,7 +111,7 @@ INT doRunByLang(LPCWSTR cmdline, LANGID wLangID, INT nCmdShow)
     atexit(atexit_proc);
 
     if (!SetLangToThread(pi.hThread, wLangID))
-        puts("FAILED: SetLangToThread");
+        OutputDebugStringA("FAILED: SetLangToThread\n");
 
     ResumeThread(pi.hThread);
 
@@ -119,7 +119,9 @@ INT doRunByLang(LPCWSTR cmdline, LANGID wLangID, INT nCmdShow)
 
     DWORD dwExitCode = -1;
     GetExitCodeProcess(pi.hProcess, &dwExitCode);
-    printf("dwExitCode: %d\n", (INT)dwExitCode);
+
+    CHAR szBuf[32];
+    StringCchPrintfA(szBuf, _countof(szBuf), "dwExitCode: %d\n", (INT)dwExitCode);
     return (INT)dwExitCode;
 }
 
