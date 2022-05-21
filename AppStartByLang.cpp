@@ -13,6 +13,37 @@
 HANDLE g_hProcess = NULL;
 HANDLE g_hThread = NULL;
 
+void version(void)
+{
+    puts("SetLangAppStart Version 0.1 by katahiromz");
+}
+
+void usage(void)
+{
+    puts(
+        "Usage: SetLangAppStart LangID your_app.exe [parameters]\n"
+        "       SetLangAppStart --help\n"
+        "       SetLangAppStart --version\n"
+        "       SetLangAppStart --langs"
+    );
+}
+
+void langs(void)
+{
+    HKL ahKLs[32];
+    ZeroMemory(ahKLs, sizeof(ahKLs));
+
+    UINT iKL, chKLs = GetKeyboardLayoutList(_countof(ahKLs), ahKLs);
+    CHAR szBuff[MAX_PATH];
+
+    for (iKL = 0; iKL < chKLs; ++iKL)
+    {
+        LANGID LangID = LOWORD(ahKLs[iKL]);
+        if (GetLocaleInfoA(LangID, LOCALE_SABBREVLANGNAME, szBuff, _countof(szBuff)))
+            printf("0x%04X: %s\n", LangID, szBuff);
+    }
+}
+
 void atexit_proc(void)
 {
     CloseHandle(g_hThread);
@@ -97,16 +128,27 @@ INT doRunByLang(LPCTSTR cmdline, LANGID wLangID, INT nCmdShow)
 
 int wmain(int argc, wchar_t *wargv[])
 {
-    if (argc <= 2)
+    if (argc <= 1 || lstrcmpiW(wargv[1], L"--help") == 0)
     {
-        MessageBox(NULL, TEXT("SetLangAppStart LangID your_app.exe [parameters]"), TEXT("Usage"), MB_ICONINFORMATION);
+        usage();
+        return 0;
+    }
+
+    if (lstrcmpiW(wargv[1], L"--version") == 0)
+    {
+        version();
+        return 0;
+    }
+
+    if (lstrcmpiW(wargv[1], L"--langs") == 0)
+    {
+        langs();
         return 0;
     }
 
     LANGID wLangID = _tcstoul(wargv[1], NULL, 0);
 
     tstr_t cmdline;
-
     for (INT iarg = 2; iarg < argc; ++iarg)
     {
         LPTSTR arg = wargv[iarg];
@@ -132,17 +174,4 @@ int wmain(int argc, wchar_t *wargv[])
         si.wShowWindow = SW_SHOWNORMAL;
 
     return doRunByLang(cmdline.c_str(), wLangID, si.wShowWindow);
-}
-
-INT WINAPI
-_tWinMain(HINSTANCE   hInstance,
-          HINSTANCE   hPrevInstance,
-          LPTSTR      lpCmdLine,
-          INT         nCmdShow)
-{
-    INT argc;
-    LPWSTR *wargv = CommandLineToArgvW(GetCommandLineW(), &argc);
-    INT ret = wmain(argc, wargv);
-    LocalFree(wargv);
-    return ret;
 }
