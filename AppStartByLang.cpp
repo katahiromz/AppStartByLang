@@ -28,16 +28,16 @@ void usage(void)
 
 void langs(void)
 {
-    HKL ahKLs[64];
-    ZeroMemory(ahKLs, sizeof(ahKLs));
+    HKL keybd_list[64];
+    ZeroMemory(keybd_list, sizeof(keybd_list));
 
-    UINT iKL, chKLs = GetKeyboardLayoutList(_countof(ahKLs), ahKLs);
+    UINT iKeybd, nCount = GetKeyboardLayoutList(_countof(keybd_list), keybd_list);
     CHAR szLang[MAX_PATH];
 
     puts("Language IDs:");
-    for (iKL = 0; iKL < chKLs; ++iKL)
+    for (iKeybd = 0; iKeybd < nCount; ++iKeybd)
     {
-        LANGID LangID = LOWORD(ahKLs[iKL]);
+        LANGID LangID = LOWORD(keybd_list[iKeybd]);
         GetLocaleInfoA(LangID, LOCALE_SENGLANGUAGE, szLang, _countof(szLang));
         printf("  0x%04X: %s\n", LangID, szLang);
     }
