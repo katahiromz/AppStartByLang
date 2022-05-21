@@ -95,7 +95,8 @@ INT doRunByLang(LPCWSTR cmdline, LANGID wLangID, INT nCmdShow)
     si.wShowWindow = nCmdShow;
 
     LPWSTR pszCmdLine = wcsdup(cmdline);
-    INT ret = CreateProcessW(NULL, pszCmdLine, NULL, NULL, FALSE, CREATE_SUSPENDED,
+    INT ret = CreateProcessW(NULL, pszCmdLine, NULL, NULL, FALSE,
+                             CREATE_SUSPENDED | CREATE_NEW_CONSOLE,
                              NULL, NULL, &si, &pi);
     if (!ret)
     {
@@ -120,8 +121,7 @@ INT doRunByLang(LPCWSTR cmdline, LANGID wLangID, INT nCmdShow)
     DWORD dwExitCode = -1;
     GetExitCodeProcess(pi.hProcess, &dwExitCode);
 
-    CHAR szBuf[32];
-    StringCchPrintfA(szBuf, _countof(szBuf), "dwExitCode: %d\n", (INT)dwExitCode);
+    fprintf(stderr, "dwExitCode: %d\n", (INT)dwExitCode);
     return (INT)dwExitCode;
 }
 
