@@ -11,3 +11,5 @@ LangID:
   0x0411        Japanese
   0x0412        Korean
   0x0419        Russian
+
+(Applicable only installed languages)
